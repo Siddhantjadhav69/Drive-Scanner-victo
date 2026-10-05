@@ -1,4 +1,7 @@
 mod rules;
+mod quarantine;
+mod scanner;
+
 use std::fs;
 
 fn setup_directories() -> std::io::Result<()> {
