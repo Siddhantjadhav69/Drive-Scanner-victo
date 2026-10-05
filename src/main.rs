@@ -8,6 +8,7 @@ mod rules;
 mod quarantine;
 mod scanner;
 mod alert;
+mod vss;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
