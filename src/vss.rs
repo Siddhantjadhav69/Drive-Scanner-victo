@@ -51,33 +51,23 @@ impl VssSnapshot {
             return Err(Error::new(ErrorKind::Other, format!("Failed to create VSS or extract ShadowID from PowerShell. Output: {}", output_str)));
         }
 
-        let list_out = Command::new("vssadmin")
-            .args(&["list", "shadows"])
+        let ps_path_out = Command::new("powershell")
+            .args(&[
+                "-NoProfile",
+                "-Command",
+                &format!("(Get-CimInstance Win32_ShadowCopy | Where-Object DeviceID -eq '{}').DeviceObject", shadow_id),
+            ])
             .output()?;
 
-        let list_str = String::from_utf8_lossy(&list_out.stdout);
-        let mut mount_path = String::new();
-        let mut found_id = false;
-
-        for line in list_str.lines() {
-            if line.contains(&shadow_id) {
-                found_id = true;
-            }
-            if found_id && line.contains("Shadow Copy Volume Name:") {
-                let parts: Vec<&str> = line.split("Shadow Copy Volume Name:").collect();
-                if parts.len() > 1 {
-                    mount_path = parts[1].trim().to_string();
-                    break;
-                }
-            }
-        }
+        let path_str = String::from_utf8_lossy(&ps_path_out.stdout);
+        let mount_path = path_str.trim().to_string();
 
         if mount_path.is_empty() {
             // Ensure we attempt cleanup gracefully if path resolution fails
             let _ = Command::new("vssadmin")
                 .args(&["delete", "shadows", &format!("/Shadow={}", shadow_id), "/Quiet"])
                 .output();
-            return Err(Error::new(ErrorKind::NotFound, "Failed to find Mount Path in vssadmin"));
+            return Err(Error::new(ErrorKind::NotFound, "Failed to find Mount Path using PowerShell"));
         }
 
         Ok(VssSnapshot {
