@@ -36,23 +36,19 @@ impl VssSnapshot {
     }
 
     pub fn create(drive: &str) -> std::io::Result<Self> {
-        let wmic_out = Command::new("wmic")
-            .args(&["shadowcopy", "call", "create", &format!("Volume=\"{}\"", drive)])
+        let ps_out = Command::new("powershell")
+            .args(&[
+                "-NoProfile",
+                "-Command",
+                &format!("(Invoke-CimMethod -ClassName Win32_ShadowCopy -MethodName Create -Arguments @{{Volume='{}'}}).ShadowID", drive),
+            ])
             .output()?;
 
-        let output_str = String::from_utf8_lossy(&wmic_out.stdout);
-        let mut shadow_id = String::new();
-        // Super basic parse, assuming output matches standard wmic format where ShadowID exists
-        for line in output_str.lines() {
-            if line.contains("ShadowID = ") {
-                if let Some(id_part) = line.split('"').nth(1) {
-                    shadow_id = id_part.to_string();
-                }
-            }
-        }
+        let output_str = String::from_utf8_lossy(&ps_out.stdout);
+        let shadow_id = output_str.trim().to_string();
 
-        if shadow_id.is_empty() {
-            return Err(Error::new(ErrorKind::Other, "Failed to extract ShadowID from wmic"));
+        if shadow_id.is_empty() || !shadow_id.starts_with('{') {
+            return Err(Error::new(ErrorKind::Other, format!("Failed to create VSS or extract ShadowID from PowerShell. Output: {}", output_str)));
         }
 
         let list_out = Command::new("vssadmin")
