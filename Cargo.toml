@@ -1,0 +1,11 @@
+[package]
+name = "rust-scanner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+notify = "6.1.1"
+crossbeam-channel = "0.5.12"
+yara = "0.13.0"
+notify-rust = "4.11.0"
+chrono = "0.4.38"
