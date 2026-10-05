@@ -46,8 +46,10 @@ fn main() {
         }
     }).unwrap();
 
-    // Watch the current directory (for example)
-    watcher.watch(std::path::Path::new("."), RecursiveMode::Recursive).unwrap();
+    // Watch the C drive
+    if let Err(e) = watcher.watch(std::path::Path::new("C:\\"), RecursiveMode::Recursive) {
+        println!("Warning: Encountered restricted directories while hooking C:\\ -> {:?}", e);
+    }
 
     println!("Scanner running in real-time...");
 
