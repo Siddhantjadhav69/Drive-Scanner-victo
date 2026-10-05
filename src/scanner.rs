@@ -9,7 +9,9 @@ pub fn scan_path(rules: &Rules, filepath: &Path) {
             if !results.is_empty() {
                 let rule_name = &results[0].identifier;
                 println!("Threat detected: {} matched {}", filepath.display(), rule_name);
-                let _ = quarantine_file(filepath);
+                if let Err(e) = quarantine_file(filepath) {
+                    println!("Warning: Could not quarantine {}: {:?}", filepath.display(), e);
+                }
                 // In Task 4, we will add logging/notifications here
             }
         },

@@ -4,8 +4,9 @@ use std::io;
 
 pub fn quarantine_file(filepath: &Path) -> io::Result<()> {
     if let Some(filename) = filepath.file_name() {
-        let mut dest = Path::new("quarantine").join(filename);
-        dest.set_extension("quarantined");
+        let mut new_filename = filename.to_os_string();
+        new_filename.push(".quarantined");
+        let dest = Path::new("quarantine").join(new_filename);
         fs::rename(filepath, dest)?;
     }
     Ok(())
