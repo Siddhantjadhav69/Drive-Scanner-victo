@@ -1,0 +1,22 @@
+# Rust Build Artifacts
+/target
+**/*.rs.bk
+Cargo.lock
+
+# Quarantine and Detections
+/quarantine/
+*.quarantined
+scanner.log
+
+# Temporary & Executables
+*.exe
+*.dll
+*.pdb
+*.sock
+
+# IDEs & System
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db

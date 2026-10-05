@@ -10,7 +10,6 @@ pub struct VssSnapshot {
 
 impl Drop for VssSnapshot {
     fn drop(&mut self) {
-        println!("Cleaning up VSS Snapshot: {}", self.id);
         let _ = Command::new("vssadmin")
             .args(&["delete", "shadows", &format!("/Shadow={}", self.id), "/Quiet"])
             .output();
@@ -60,7 +59,10 @@ impl VssSnapshot {
             .output()?;
 
         let path_str = String::from_utf8_lossy(&ps_path_out.stdout);
-        let mount_path = path_str.trim().to_string();
+        let mut mount_path = path_str.trim().to_string();
+        if !mount_path.ends_with('\\') {
+            mount_path.push('\\');
+        }
 
         if mount_path.is_empty() {
             // Ensure we attempt cleanup gracefully if path resolution fails
