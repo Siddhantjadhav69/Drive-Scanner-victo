@@ -1,5 +1,6 @@
 use std::process::Command;
 use std::io::{Error, ErrorKind};
+use std::path::{Path, PathBuf};
 
 pub struct VssSnapshot {
     pub id: String,
@@ -17,6 +18,23 @@ impl Drop for VssSnapshot {
 }
 
 impl VssSnapshot {
+    pub fn remap_to_live(&self, vss_path: &Path) -> PathBuf {
+        let vss_str = vss_path.to_string_lossy().to_string();
+        if vss_str.starts_with(&self.mount_path) {
+            let relative = &vss_str[self.mount_path.len()..];
+            // E.g., strips `\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\`
+            // relative becomes `Users\siddh\malware.exe` or `\Users\siddh...`
+            let trimmed = relative.trim_start_matches('\\');
+            let drive_prefix = self.drive_letter.trim_end_matches('\\'); // e.g. "C:"
+            let mut live_path = PathBuf::from(drive_prefix);
+            live_path.push("\\");
+            live_path.push(trimmed);
+            live_path
+        } else {
+            vss_path.to_path_buf()
+        }
+    }
+
     pub fn create(drive: &str) -> std::io::Result<Self> {
         let wmic_out = Command::new("wmic")
             .args(&["shadowcopy", "call", "create", &format!("Volume=\"{}\"", drive)])

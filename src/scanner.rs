@@ -3,8 +3,9 @@ use std::path::Path;
 use crate::quarantine::quarantine_file;
 use std::thread;
 use std::time::Duration;
+use crate::vss::VssSnapshot;
 
-pub fn scan_path(rules: &Rules, filepath: &Path) {
+pub fn scan_path(rules: &Rules, filepath: &Path, vss: Option<&VssSnapshot>) {
     if !filepath.is_file() {
         return; // Ignore directories or non-existent files
     }
@@ -18,11 +19,17 @@ pub fn scan_path(rules: &Rules, filepath: &Path) {
             Ok(results) => {
                 if !results.is_empty() {
                     let rule_name = &results[0].identifier;
-                    if let Err(e) = quarantine_file(filepath) {
-                        println!("Warning: Quarantine failed for {}: {:?}", filepath.display(), e);
+                    let live_filepath = if let Some(snapshot) = vss {
+                        snapshot.remap_to_live(filepath)
                     } else {
-                        crate::alert::alert_user(&filepath.display().to_string(), rule_name);
-                        crate::alert::log_event(&filepath.display().to_string(), rule_name);
+                        filepath.to_path_buf()
+                    };
+
+                    if let Err(e) = quarantine_file(&live_filepath) {
+                        println!("Warning: Quarantine failed for {}: {:?}", live_filepath.display(), e);
+                    } else {
+                        crate::alert::alert_user(&live_filepath.display().to_string(), rule_name);
+                        crate::alert::log_event(&live_filepath.display().to_string(), rule_name);
                     }
                 }
                 return; // Success, exit the loop
