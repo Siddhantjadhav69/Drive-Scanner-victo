@@ -8,7 +8,9 @@ pub fn scan_path(rules: &Rules, filepath: &Path) {
         Ok(results) => {
             if !results.is_empty() {
                 let rule_name = &results[0].identifier;
-                if quarantine_file(filepath).is_ok() {
+                if let Err(e) = quarantine_file(filepath) {
+                    println!("Warning: Quarantine failed: {:?}", e);
+                } else {
                     crate::alert::alert_user(&filepath.display().to_string(), rule_name);
                     crate::alert::log_event(&filepath.display().to_string(), rule_name);
                 }

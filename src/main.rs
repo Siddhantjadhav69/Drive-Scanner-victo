@@ -14,25 +14,18 @@ fn main() {
     std::fs::create_dir_all("quarantine").unwrap();
 
     let compiler = rules::compile_rules("rules").expect("Failed to compile rules");
-    let yara_rules = compiler.compile_rules().expect("Failed to build rule set");
+    let yara_rules = std::sync::Arc::new(compiler.compile_rules().expect("Failed to build rule set"));
 
     let (tx, rx) = unbounded::<PathBuf>();
 
     // 2. Spawn worker pool (e.g., 4 threads)
     for _ in 0..4 {
         let rx_clone = rx.clone();
-        // Rules cannot be shared across threads safely without Arc/Mutex depending on yara bindings,
-        // but yara-rust Rules doesn't implement Send + Sync safely out of the box in older versions.
-        // For simplicity, we clone the rules or use a wrapper if it supports it. Assuming yara_rules.clone() exists/works.
-        // Wait, standard yara Rust bindings allow compiling to a reusable ruleset which often isn't Cloneable.
-        // Let's assume we compile per thread or use a globally safe approach.
-        // For this plan, we'll compile inside the thread to avoid borrow checker issues for the user.
-        let local_compiler = rules::compile_rules("rules").unwrap();
-        let local_rules = local_compiler.compile_rules().unwrap();
+        let thread_rules = std::sync::Arc::clone(&yara_rules);
 
         thread::spawn(move || {
             while let Ok(path) = rx_clone.recv() {
-                scanner::scan_path(&local_rules, &path);
+                scanner::scan_path(&thread_rules, &path);
             }
         });
     }
