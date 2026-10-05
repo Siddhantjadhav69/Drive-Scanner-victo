@@ -45,7 +45,7 @@ fn main() {
 
             handles.push(thread::spawn(move || {
                 while let Ok(path) = rx_clone.recv() {
-                    scanner::scan_path(&thread_rules, &path, Some(&thread_snapshot));
+                    scanner::scan_path(&thread_rules, &path, Some(&*thread_snapshot));
                 }
             }));
         }
