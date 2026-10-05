@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 notify = "6.1.1"
 crossbeam-channel = "0.5.12"
-yara = "0.13.0"
+yara = { version = "0.32.0", features = ["vendored"] }
 notify-rust = "4.11.0"
 chrono = "0.4.38"
+walkdir = "2.5.0"

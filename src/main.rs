@@ -1,3 +1,4 @@
+use std::env;
 use notify::{Watcher, RecursiveMode, EventKind};
 use crossbeam_channel::unbounded;
 use std::thread;
@@ -9,6 +10,14 @@ mod scanner;
 mod alert;
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() >= 3 && args[1] == "--vss-scan" {
+        let drive = &args[2];
+        println!("Initiating VSS scan on drive: {}", drive);
+        // We will implement VSS integration here in Task 4
+        return;
+    }
+
     // 1. Setup
     std::fs::create_dir_all("rules").unwrap();
     std::fs::create_dir_all("quarantine").unwrap();
