@@ -35,7 +35,12 @@ fn main() {
         if let Ok(event) = res {
             if matches!(event.kind, EventKind::Create(_) | EventKind::Modify(_)) {
                 for path in event.paths {
-                    let _ = tx.send(path);
+                    // Ignore our own compiler artifacts and quarantine folder
+                    if let Some(p_str) = path.to_str() {
+                        if !p_str.contains("target") && !p_str.contains("quarantine") {
+                            let _ = tx.send(path);
+                        }
+                    }
                 }
             }
         }

@@ -3,6 +3,10 @@ use std::path::Path;
 use crate::quarantine::quarantine_file;
 
 pub fn scan_path(rules: &Rules, filepath: &Path) {
+    if !filepath.is_file() {
+        return; // Ignore directories or non-existent files
+    }
+
     // Attempt to scan. Catch permission errors gracefully.
     match rules.scan_file(filepath, 10) {
         Ok(results) => {
