@@ -55,7 +55,7 @@ impl VssSnapshot {
             .args(&[
                 "-NoProfile",
                 "-Command",
-                &format!("(Get-CimInstance Win32_ShadowCopy | Where-Object DeviceID -eq '{}').DeviceObject", shadow_id),
+                &format!("(Get-WmiObject Win32_ShadowCopy | Where-Object ID -eq '{}').DeviceObject", shadow_id),
             ])
             .output()?;
 
