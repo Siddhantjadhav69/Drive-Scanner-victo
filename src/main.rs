@@ -1,6 +1,7 @@
 mod rules;
 mod quarantine;
 mod scanner;
+mod alert;
 
 use std::fs;
 
