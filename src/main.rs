@@ -1,3 +1,4 @@
+mod rules;
 use std::fs;
 
 fn setup_directories() -> std::io::Result<()> {
